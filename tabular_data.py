@@ -12,8 +12,8 @@ def combine_description_strings(listings):
     
     listings = listings.dropna(subset=['Description'])
     
-    # 1 Description cell is a string, not a string of a list of strings. changed to string of a list for easier processing
-    listings.loc[listings['ID'].str.contains('4c917b3c-d693-4ee4-a321-f5babc728dc9'), 'Description'] = "['Sleeps 6 with pool.']"
+    # deleting 1 listing - poor data entry
+    listings = listings[listings['ID'] != '4c917b3c-d693-4ee4-a321-f5babc728dc9']
     
     # strings of a list of strings changed to list of strings
     listings['Description'] = listings['Description'].apply(ast.literal_eval)
@@ -62,23 +62,6 @@ def replace_newlines(text):
     
     return text
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def clean_tabular_data(listings):
     listings = remove_rows_with_missing_ratings(listings)
     listings = combine_description_strings(listings)
@@ -93,9 +76,9 @@ def load_airbnb(label):
 
     num_columns = clean_data.select_dtypes(exclude=['object']).columns
 
-    num_features = clean_data[num_columns].drop(columns=['Price_Night'])
+    num_features = clean_data[num_columns].drop(columns=[label])
 
-    labels = clean_data['Price_Night']
+    labels = clean_data[label]
 
     return num_features, labels
 
