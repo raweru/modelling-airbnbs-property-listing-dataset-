@@ -1,6 +1,6 @@
 import pandas as pd
 import ast
-
+import re
 
 def remove_rows_with_missing_ratings(listings):
     listings = listings.drop('Unnamed: 19', axis=1)
@@ -12,9 +12,10 @@ def combine_description_strings(listings):
     
     listings = listings.dropna(subset=['Description'])
     
-    # 1 Description cell is a string, not a list of strings
+    # 1 Description cell is a string, not a string of a list of strings. changed to string of a list for easier processing
     listings.loc[listings['ID'].str.contains('4c917b3c-d693-4ee4-a321-f5babc728dc9'), 'Description'] = "['Sleeps 6 with pool.']"
     
+    # strings of a list of strings changed to list of strings
     listings['Description'] = listings['Description'].apply(ast.literal_eval)
     
     delete_these_parts = ['About this space', 'The space', 'Other things to note', 'Guest access', '']
@@ -35,23 +36,50 @@ def set_default_feature_values(listings):
     
     return listings
 
+def replace_newlines(text):
+    # Replace consecutive newlines with a dot and a space if no non-alphanumeric character in front
+    text = re.sub(r'(?<!\W)\n+', '. ', text)
+    
+    # Replace consecutive newlines with a single space if a non-alphanumeric character is in front
+    text = re.sub(r'(?<=\W)\n+', ' ', text)
+    
+    return text
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def clean_tabular_data(listings):
     listings = remove_rows_with_missing_ratings(listings)
     listings = combine_description_strings(listings)
     listings = set_default_feature_values(listings)
-    
+    listings['Description'] = listings['Description'].apply(replace_newlines)
+
     return listings
 
 def load_airbnb(label):
-    listings = pd.read_csv('tabular_data/listing.csv')
+    clean_data = pd.read_csv('tabular_data/clean_tabular_data.csv')
 
-    non_text_columns = listings.select_dtypes(exclude=['object']).columns
+    num_columns = clean_data.select_dtypes(exclude=['object']).columns
 
-    features = df[non_text_columns].drop(columns=[label])
+    num_features = clean_data[num_columns].drop(columns=['Price_Night'])
 
-    labels = df[label]
+    labels = clean_data['Price_Night']
 
-    return features, labels
+    return num_features, labels
 
 
 if __name__ == "__main__":
