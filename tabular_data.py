@@ -27,6 +27,23 @@ def combine_description_strings(listings):
     
     return listings
 
+def combine_amenities_strings(listings):
+    
+    # strings of a list of strings changed to list of strings
+    listings['Amenities'] = listings['Amenities'].apply(ast.literal_eval)
+    
+    #all 'Unavailable: TV/nTV' elements to 'Unavailable: TV', delete newline and second repeat
+    listings['Amenities'] = listings['Amenities'].apply(lambda amenities: [item.split('\n')[0] if item.startswith('Unavailable') else item for item in amenities])
+
+    delete_these_parts = ['What this place offers', '']
+    for part in delete_these_parts:
+        listings['Amenities'] = listings['Amenities'].apply(lambda x: [item for item in x if item != part])
+        
+    listings['Amenities'] = listings['Amenities'].apply(lambda x: '. '.join(x) if isinstance(x, list) else x)
+    
+    return listings
+
+
 def set_default_feature_values(listings):
     default_value = 1
     features = ["guests", "beds", "bathrooms", "bedrooms"]
@@ -67,7 +84,8 @@ def clean_tabular_data(listings):
     listings = combine_description_strings(listings)
     listings = set_default_feature_values(listings)
     listings['Description'] = listings['Description'].apply(replace_newlines)
-
+    listings = combine_amenities_strings(listings)
+    
     return listings
 
 def load_airbnb(label):
