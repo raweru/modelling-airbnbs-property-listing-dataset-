@@ -1,6 +1,8 @@
 import numpy as np
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.linear_model import SGDRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.model_selection import train_test_split, GridSearchCV
 from tabular_data import load_airbnb
 import itertools
@@ -123,23 +125,13 @@ def custom_tune_regression_model_hyperparameters(model_class, hyperparameters):
     return best_model, best_params, best_metrics
 
 
-def tune_regression_model_hyperparameters():
+def tune_regression_model_hyperparameters(model_class, param_grid):
     
     best_metrics = {}
+
+    model = model_class()
     
-    model = SGDRegressor()
-    
-    param_grid = {
-        'loss': ['squared_error', 'huber'],
-        'penalty': ['l2', 'l1', 'elasticnet'],
-        'alpha': [0.0001, 0.001, 0.01],
-        'learning_rate': ['constant', 'optimal', 'invscaling'],
-        'max_iter': [1000, 2000],
-        'early_stopping': [True, False],
-        'validation_fraction': [0.1, 0.2],
-        'tol': [1e-3, 1e-4]
-    }
-    
+
     grid_search = GridSearchCV(model, param_grid, cv=5)
     grid_search.fit(X_train, y_train)
     
@@ -156,7 +148,7 @@ def tune_regression_model_hyperparameters():
     best_metrics["test_R2"] = best_model.score(X_test, y_test)
     
     print("--------------------------------")
-    print("SKLEARN GRID SEARCH")
+    print(f"SKLEARN GRID SEARCH - {model_class}")
     print(f"Best Model:{best_model}")
     print("")
     print("Best Hyperparameters:")
@@ -191,20 +183,20 @@ def save_model(model, hyperparameters, metrics, folder, model_filename, params_f
 
 
 
-def main(models_to_run):
+def evaluate_all_models(models_to_run):
 
-    if 'baseline' in models_to_run:
+    if 'baseline_sgd' in models_to_run:
         
         baseline_model, baseline_params, baseline_metrics = train_linear_regression()
         
-        save_model(baseline_model, baseline_params, baseline_metrics, 'models/regression/linear_regression/baseline_sgd/',
+        save_model(baseline_model, baseline_params, baseline_metrics, 'models/regression/baseline_sgd/',
                    'baseline_sgd_model', 'baseline_sgd_params', 'baseline_sgd_metrics')
 
-    if 'custom' in models_to_run:
+    if 'custom_ft_sgd' in models_to_run:
         
         custom_model_class = SGDRegressor
         
-        custom_hyperparameters = {
+        param_grid = {
         'loss': ['squared_error', 'huber'],
         'penalty': ['l2', 'l1', 'elasticnet'],
         'alpha': [0.0001, 0.001, 0.01],
@@ -215,18 +207,118 @@ def main(models_to_run):
         'tol': [1e-3, 1e-4]}
         
         custom_model, custom_params, custom_metrics = custom_tune_regression_model_hyperparameters(
-            custom_model_class, custom_hyperparameters)
+            custom_model_class, param_grid)
         
-        save_model(custom_model, custom_params, custom_metrics, 'models/regression/linear_regression/custom_sgd/',
-                   'custom_sgd_model', 'custom_sgd_params', 'custom_sgd_metrics')
+        save_model(custom_model, custom_params, custom_metrics, 'models/regression/custom_ft_sgd/',
+                   'custom_ft_sgd_model', 'custom_ft_sgd_params', 'custom_ft_sgd_metrics')
     
-    if 'sklearn' in models_to_run:
+    if 'sklearn_ft_sgd' in models_to_run:
         
-        sklearn_model, sklearn_params, sklearn_metrics = tune_regression_model_hyperparameters()
+        model_class = SGDRegressor
+        param_grid = {
+            'loss': ['squared_error', 'huber'],
+            'penalty': ['l2', 'l1', 'elasticnet'],
+            'alpha': [0.0001, 0.001, 0.01],
+            'learning_rate': ['constant', 'optimal', 'invscaling'],
+            'max_iter': [1000, 2000],
+            'early_stopping': [True, False],
+            'validation_fraction': [0.1, 0.2],
+            'tol': [1e-3, 1e-4]
+        }
         
-        save_model(sklearn_model, sklearn_params, sklearn_metrics, 'models/regression/linear_regression/sklearn_sgd/',
-                    'sklearn_sgd_model', 'sklearn_sgd_params', 'sklearn_sgd_metrics')
+        sklearn_model, sklearn_params, sklearn_metrics = tune_regression_model_hyperparameters(
+            model_class, param_grid)
+        
+        save_model(sklearn_model, sklearn_params, sklearn_metrics, 'models/regression/sklearn_ft_sgd/',
+                    'sklearn_ft_sgd_model', 'sklearn_ft_sgd_params', 'sklearn_ft_sgd_metrics')
+
+    if 'decision_tree' in models_to_run:
+        
+        model_class = DecisionTreeRegressor
+        param_grid = {
+            'max_depth': [None, 5, 10],
+            'min_samples_split': [5, 10, 15],
+            'min_samples_leaf': [1, 2, 4]
+        }
+        
+        sklearn_model, sklearn_params, sklearn_metrics = tune_regression_model_hyperparameters(
+            model_class, param_grid)
+        
+        save_model(sklearn_model, sklearn_params, sklearn_metrics, 'models/regression/decision_tree/',
+                    'decision_tree_model', 'decision_tree_params', 'decision_tree_metrics')
+
+    if 'random_forest' in models_to_run:
+        
+        model_class = RandomForestRegressor
+        param_grid = {
+            'n_estimators': [100, 500, 1000],
+            'max_depth': [None, 5, 10],
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 5, 10]
+        }
+        
+        sklearn_model, sklearn_params, sklearn_metrics = tune_regression_model_hyperparameters(
+            model_class, param_grid)
+        
+        save_model(sklearn_model, sklearn_params, sklearn_metrics, 'models/regression/random_forest/',
+                    'random_forest_model', 'random_forest_params', 'random_forest_metrics')
+
+    if 'gboost' in models_to_run:
+        
+        model_class = GradientBoostingRegressor
+        param_grid = {
+            'n_estimators': [100, 200, 300],
+            'learning_rate': [0.01, 0.1, 0.5],
+            'max_depth': [5, 10, 15],
+            'min_samples_split': [2, 7, 15],
+            'min_samples_leaf': [1, 2, 4]
+        }
+        
+        sklearn_model, sklearn_params, sklearn_metrics = tune_regression_model_hyperparameters(
+            model_class, param_grid)
+        
+        save_model(sklearn_model, sklearn_params, sklearn_metrics, 'models/regression/gboost/',
+                    'gboost_model', 'gboost_params', 'gboost_metrics')
+
+
+def find_best_model(models_to_evaluate):
+    
+    best_model = None
+    best_params = {}
+    best_metrics = {}
+
+    for model_name in models_to_evaluate:
+        model_folder = f"models/regression/{model_name}/"
+
+        # Load the model, hyperparameters, and metrics
+        model_path = os.path.join(model_folder, f"{model_name}_model.joblib")
+        model = joblib.load(model_path)
+
+        hyperparameters_path = os.path.join(model_folder, f"{model_name}_params.json")
+        with open(hyperparameters_path, "r") as file:
+            hyperparameters = json.load(file)
+
+        metrics_path = os.path.join(model_folder, f"{model_name}_metrics.json")
+        with open(metrics_path, "r") as file:
+            metrics = json.load(file)
+
+        # Update the best model based on the performance metrics
+        if best_model is None or metrics["test_RMSE"] < best_metrics["test_RMSE"]:
+            best_model = model
+            best_params = hyperparameters
+            best_metrics = metrics
+            
+    print(best_model, best_params, best_metrics)
+    
+    
+    return best_model, best_params, best_metrics
 
 
 if __name__ == "__main__":
-    main(['baseline', 'custom', 'sklearn'])
+    
+    models = [
+        "baseline_sgd", "custom_ft_sgd", "sklearn_ft_sgd", "decision_tree", "random_forest", "gboost"]
+    
+    evaluate_all_models(models)
+    
+    find_best_model(models)

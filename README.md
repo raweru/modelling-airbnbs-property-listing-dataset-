@@ -22,3 +22,5 @@ Data comes in two folders: tabular data and images. We start by taking a look at
 
 All data cleaning functions are grouped inside **clean_tabular_data** function inside the __name__ == "__main__" block.
 
+## Milestone 4: Create a Regression Model
+
