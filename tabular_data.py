@@ -182,7 +182,7 @@ def clean_tabular_data(listings):
     return listings
 
 
-def load_airbnb(label):
+def load_airbnb(label, num_only=True):
     
     '''The function "load_airbnb" loads a clean tabular dataset from a CSV file and separates the numerical
     features from the labels.
@@ -200,15 +200,26 @@ def load_airbnb(label):
     '''
     
     clean_data = pd.read_csv('tabular_data/clean_tabular_data.csv')
-
-    num_columns = clean_data.select_dtypes(exclude=['object']).columns
-
-    num_features = clean_data[num_columns].drop(columns=[label])
-
+    
     labels = pd.DataFrame(clean_data[label], columns=[label])
 
+    if num_only == True:
+        
+        num_columns = clean_data.select_dtypes(exclude=['object']).columns
+        
+        if label in num_columns:
+            
+            features = clean_data[num_columns].drop(columns=[label])
 
-    return num_features, labels
+        else:
+            features = clean_data[num_columns]
+            
+    if num_only == False:
+        
+        features = clean_data.drop(columns=[label])
+        
+
+    return features, labels
 
 
 if __name__ == "__main__":
