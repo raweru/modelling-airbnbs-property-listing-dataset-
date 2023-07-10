@@ -34,18 +34,27 @@ def train_linear_regression():
 
     # Compute predictions for the training set
     train_predictions = model.predict(X_train)
+    
+    # Compute predictions for the validation set
+    valid_predictions = model.predict(X_valid)
 
     # Compute predictions for the test set
     test_predictions = model.predict(X_test)
-
+    
     # Compute RMSE for the training set
     metrics["train_RMSE"] = np.sqrt(mean_squared_error(y_train, train_predictions))
+    
+    # Compute RMSE for the validation set
+    metrics["valid_RMSE"] = np.sqrt(mean_squared_error(y_valid, valid_predictions))
 
     # Compute RMSE for the test set
     metrics["test_RMSE"] = np.sqrt(mean_squared_error(y_test, test_predictions))
 
     # Compute R^2 score for the training set
     metrics["train_R2"] = r2_score(y_train, train_predictions)
+    
+    # Compute R^2 score for the validation set
+    metrics["valid_R2"] = r2_score(y_valid, valid_predictions)
 
     # Compute R^2 score for the test set
     metrics["test_R2"] = r2_score(y_test, test_predictions)
@@ -77,7 +86,7 @@ def generate_parameter_combinations(hyperparameters):
 def custom_tune_regression_model_hyperparameters(model_class, hyperparameters):
     best_model = None
     best_params = {}
-    best_metrics = {"validation_RMSE": float('inf')}
+    best_metrics = {"valid_RMSE": float('inf')}
     
     # Iterate over hyperparameter combinations
     for params in generate_parameter_combinations(hyperparameters):
@@ -94,10 +103,10 @@ def custom_tune_regression_model_hyperparameters(model_class, hyperparameters):
         rmse = np.sqrt(mean_squared_error(y_valid, y_pred))
         
         # Check if this model is the best so far
-        if rmse < best_metrics["validation_RMSE"]:
+        if rmse < best_metrics["valid_RMSE"]:
             best_model = model
             best_params = params
-            best_metrics["validation_RMSE"] = rmse
+            best_metrics["valid_RMSE"] = rmse
     
     # Calculate additional performance metrics for the best model
     y_pred_train = best_model.predict(X_train)
@@ -106,6 +115,7 @@ def custom_tune_regression_model_hyperparameters(model_class, hyperparameters):
     best_metrics["train_RMSE"] = np.sqrt(mean_squared_error(y_train, y_pred_train))
     best_metrics["test_RMSE"] = np.sqrt(mean_squared_error(y_test, y_pred_test))
     best_metrics["train_R2"] = best_model.score(X_train, y_train)
+    best_metrics["valid_R2"] = best_model.score(X_valid, y_valid)
     best_metrics["test_R2"] = best_model.score(X_test, y_test)
     
     
@@ -140,11 +150,14 @@ def tune_regression_model_hyperparameters(model_class, param_grid):
     
     # Calculate additional performance metrics for the best model
     y_pred_train = best_model.predict(X_train)
+    y_pred_valid = best_model.predict(X_valid)
     y_pred_test = best_model.predict(X_test)
     
     best_metrics["train_RMSE"] = np.sqrt(mean_squared_error(y_train, y_pred_train))
+    best_metrics["valid_RMSE"] = np.sqrt(mean_squared_error(y_valid, y_pred_valid))
     best_metrics["test_RMSE"] = np.sqrt(mean_squared_error(y_test, y_pred_test))
     best_metrics["train_R2"] = best_model.score(X_train, y_train)
+    best_metrics["valid_R2"] = best_model.score(X_valid, y_valid)
     best_metrics["test_R2"] = best_model.score(X_test, y_test)
     
     print("--------------------------------")
