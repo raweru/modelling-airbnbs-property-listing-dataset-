@@ -24,11 +24,11 @@ All data cleaning functions are grouped inside **clean_tabular_data** function i
 
 ## Milestone 4: Create a Regression Model
 
-After we cleaned the data, we took only numeric data to generate regression models to predict the price per night for each listing. All models and functions were created inside modelling.py file and models with their hyperparameters and metrics saved in models/regression/ folder.
+After we cleaned the data, we took only numeric data to generate regression models to predict the price per night for each listing. All models and functions were created inside regression.py file and models with their hyperparameters and metrics saved in models/regression/ folder.
 
-We used Regression Models from Scikit-Learn library to find the best one. 
+We used Regression Models from Scikit-Learn library and compared them to find the best one.
 
-Only data preprocessing that we did on numeric data in the previous step was imputing missing values. So taking it a step further we could have done some feature scaling, selection and check for outliers.
+Only data preprocessing that we did on numeric data in the previous step was imputing missing values. So taking it a step further we could have done some feature scaling, feature selection and checking for outliers.
 
 Starting point was the default SGD Regressor without any fine tuning. Next two models were the same SGD Regressor but fine tuned using GridSearchCV and a custom fine tune function. We also tried GridSearchCV on a Decision Tree model, Random Forest model and a Gradient Boosting Regressor.
 
@@ -42,4 +42,20 @@ Best performance was achieved with the Random Forest Regressor, which gave the l
 | Decision Tree + GridSearchCV     | 91.37535559822163 | 0.2123483888665909     |
 | Random Forest + GridSearchCV     | 82.21885802999995 | 0.3622963741081465     |
 | Gradient Boosting + GridSearchCV | 86.57975827578649 | 0.2928545628239384     | 
+
+## Milestone 5: Create a Classification Model
+
+Again, using just the numeric tabular data, we trained classification models to predict which "Category" each listing falls into. All models and functions were created inside classification.py file and models with their hyperparameters and metrics saved in models/classification/ folder.
+
+All models were fine tuned with sklearn GridSearchCV.
+
+| Classification Model Name            | Val Accuracy |
+| ------------------------------------ | ------------ |
+| Logistic Regression (no fine tuning) | 0.328        |
+| Logistic Regression  + GridSearchCV  | 0.408        |
+| Decision Tree + GridSearchCV         | 0.264        |
+| Random Forest + GridSearchCV         | 0.344        |
+| Gradient Boosting + GridSearchCV     | 0.304        |
+
+Best performing was Logistic Regression  + GridSearchCV with 0.408 validation accuracy.
 

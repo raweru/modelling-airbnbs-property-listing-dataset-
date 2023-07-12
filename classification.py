@@ -1,10 +1,16 @@
 from tabular_data import load_airbnb
 from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn. ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import train_test_split, GridSearchCV
 from modelling import save_model
 import warnings
 from sklearn.exceptions import ConvergenceWarning, DataConversionWarning
+import json
+import os
+import joblib
+
 
 # Ignore the convergence warning
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
@@ -92,7 +98,7 @@ def tune_classification_model_hyperparameters(model_class, param_grid):
     return best_model, best_params, best_metrics
 
 
-def evaluate_all_models(models_to_run):
+def evaluate_all_models(models_to_run, task_folder):
 
     if 'log_reg_base' in models_to_run:
         
@@ -109,14 +115,105 @@ def evaluate_all_models(models_to_run):
         log_reg_model, log_reg_params, log_reg_metrics = tune_classification_model_hyperparameters(
             model_class, param_grid)
         
-        save_model(log_reg_model, log_reg_params, log_reg_metrics, 'models/classification/log_reg_base/',
+        save_model(log_reg_model, log_reg_params, log_reg_metrics, f'{task_folder}/log_reg_base/',
                    'log_reg_model', 'log_reg_params', 'log_reg_metrics')
+
+    if 'decision_tree' in models_to_run:
+        
+        model_class = DecisionTreeClassifier
+        
+        param_grid = {
+            'criterion': ['gini', 'entropy'],
+            'max_depth': [None, 5, 10, 15, 20],
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 2, 4],
+            'max_features': [None, 'sqrt', 'log2']
+            }
+        
+        dec_tree_model, dec_tree_params, dec_tree_metrics = tune_classification_model_hyperparameters(
+            model_class, param_grid)
+        
+        save_model(dec_tree_model, dec_tree_params, dec_tree_metrics, f'{task_folder}/decision_tree/',
+                   'dec_tree_model', 'dec_tree_params', 'dec_tree_metrics')
+        
+    if 'random_forest' in models_to_run:
+        
+        model_class = RandomForestClassifier
+        
+        param_grid = {
+            'n_estimators': [100, 200, 300],
+            'criterion': ['gini', 'entropy'],
+            'max_depth': [None, 5, 10, 15, 20],
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 2, 4],
+            'max_features': [None, 'sqrt', 'log2']
+            }
+        
+        rnd_for_model, rnd_for_params, rnd_for_metrics = tune_classification_model_hyperparameters(
+            model_class, param_grid)
+        
+        save_model(rnd_for_model, rnd_for_params, rnd_for_metrics, f'{task_folder}/random_forest/',
+                   'rnd_for_model', 'rnd_for_params', 'rnd_for_metrics')
+        
+    if 'gboost' in models_to_run:
+        
+        model_class = GradientBoostingClassifier
+        
+        param_grid = {
+            'n_estimators': [100, 200, 300],
+            'learning_rate': [0.01, 0.1, 0.5],
+            'max_depth': [3, 5, 10],
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 2, 4],
+            'max_features': [None, 'sqrt', 'log2']
+            }
+        
+        gboost_model, gboost_params, gboost_metrics = tune_classification_model_hyperparameters(
+            model_class, param_grid)
+        
+        save_model(gboost_model, gboost_params, gboost_metrics, f'{task_folder}/gboost/',
+                   'gboost_model', 'gboost_params', 'gboost_metrics')
+
+def find_best_model(task_folder):
+    best_model = None
+    best_params = {}
+    best_metrics = {}
+
+    for model_name in os.listdir(task_folder):
+        model_folder = os.path.join(task_folder, model_name)
+
+        if not os.path.isdir(model_folder):
+            continue
+
+        # Load the model, hyperparameters, and metrics
+        model_path = os.path.join(model_folder, f"{model_name}_model.joblib")
+        model = joblib.load(model_path)
+
+        hyperparameters_path = os.path.join(model_folder, f"{model_name}_params.json")
+        with open(hyperparameters_path, "r") as file:
+            hyperparameters = json.load(file)
+
+        metrics_path = os.path.join(model_folder, f"{model_name}_metrics.json")
+        with open(metrics_path, "r") as file:
+            metrics = json.load(file)
+
+        # Update the best model based on the performance metrics
+        if best_model is None or metrics["validation_accuracy"] > best_metrics["validation_accuracy"]:
+            best_model = model
+            best_params = hyperparameters
+            best_metrics = metrics
+
+    print(best_model, best_params, best_metrics)
+
+    return best_model, best_params, best_metrics
 
 
 if __name__ == "__main__":
     
-    train_logistic_regression()
+    #train_logistic_regression()
     
-    models_to_run = ['log_reg_base']
+    models = ['log_reg_base', 'decision_tree', 'random_forest', 'gboost']
     
-    evaluate_all_models(models_to_run)
+    #evaluate_all_models(models, 'models/classification')
+    
+    find_best_model('models/classification')
