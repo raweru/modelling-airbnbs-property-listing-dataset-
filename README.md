@@ -28,20 +28,20 @@ After we cleaned the data, we took only numeric data to generate regression mode
 
 We used Regression Models from Scikit-Learn library and compared them to find the best one.
 
-Only data preprocessing that we did on numeric data in the previous step was imputing missing values. So taking it a step further we could have done some feature scaling, feature selection and checking for outliers.
+Only data preprocessing that we did on numeric data in the previous step was imputing missing values and feature scaling. So taking it a step further we could have done some feature selection and checking for outliers as well.
 
 Starting point was the default SGD Regressor without any fine tuning. Next two models were the same SGD Regressor but fine tuned using GridSearchCV and a custom fine tune function. We also tried GridSearchCV on a Decision Tree model, Random Forest model and a Gradient Boosting Regressor.
 
-Best performance was achieved with the Random Forest Regressor, which gave the lowest value validation RMSE and highest value validation R2.
+Best performance was achieved with the SGD Regressor with the custom fine tuning function, which gave the lowest value validation RMSE and highest value validation R2.
 
 | Regression Model Name            | Val RMSE          | Val R2                 |
 | -------------------------------- | ----------------- | ---------------------- |
-| SGD (no fine tuning)             | 19393676086.58724 | -3.548103508824183e+16 |
-| SGD + Custom fine tuning         | 83.55228726659075 | 0.3414440283871991     |
-| SGD + GridSearchCV               | 86.57500452693962 | 0.2929322137573135     |
-| Decision Tree + GridSearchCV     | 91.37535559822163 | 0.2123483888665909     |
-| Random Forest + GridSearchCV     | 82.21885802999995 | 0.3622963741081465     |
-| Gradient Boosting + GridSearchCV | 86.57975827578649 | 0.2928545628239384     | 
+| SGD (no fine tuning)             | 0.613             | 0.408                  |
+| **SGD + Custom fine tuning**     | **0.583**         | **0.464**              |
+| SGD + GridSearchCV               | 0.612             | 0.410                  |
+| Decision Tree + GridSearchCV     | 0.672             | 0.289                  |
+| Random Forest + GridSearchCV     | 0.642             | 0.350                  |
+| Gradient Boosting + GridSearchCV | 0.670             | 0.293                  | 
 
 ## Milestone 5: Create a Classification Model
 
@@ -51,11 +51,11 @@ All models were fine tuned with sklearn GridSearchCV.
 
 | Classification Model Name            | Val Accuracy |
 | ------------------------------------ | ------------ |
-| Logistic Regression (no fine tuning) | 0.328        |
+| Logistic Regression (no fine tuning) | 0.392        |
 | Logistic Regression  + GridSearchCV  | 0.408        |
-| Decision Tree + GridSearchCV         | 0.264        |
-| Random Forest + GridSearchCV         | 0.344        |
-| Gradient Boosting + GridSearchCV     | 0.304        |
+| Decision Tree + GridSearchCV         | 0.272        |
+| Random Forest + GridSearchCV         | 0.312        |
+| Gradient Boosting + GridSearchCV     | 0.352        |
 
-Best performing was Logistic Regression  + GridSearchCV with 0.408 validation accuracy.
+Best performing was Logistic Regression + GridSearchCV with 0.408 validation accuracy.
 

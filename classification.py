@@ -4,7 +4,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn. ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import train_test_split, GridSearchCV
-from modelling import save_model
+from regression import save_model
 import warnings
 from sklearn.exceptions import ConvergenceWarning, DataConversionWarning
 import json
@@ -100,7 +100,7 @@ def tune_classification_model_hyperparameters(model_class, param_grid):
 
 def evaluate_all_models(models_to_run, task_folder):
 
-    if 'log_reg_base' in models_to_run:
+    if 'log_reg' in models_to_run:
         
         model_class = LogisticRegression
         
@@ -115,7 +115,7 @@ def evaluate_all_models(models_to_run, task_folder):
         log_reg_model, log_reg_params, log_reg_metrics = tune_classification_model_hyperparameters(
             model_class, param_grid)
         
-        save_model(log_reg_model, log_reg_params, log_reg_metrics, f'{task_folder}/log_reg_base/',
+        save_model(log_reg_model, log_reg_params, log_reg_metrics, f'{task_folder}/log_reg/',
                    'log_reg_model', 'log_reg_params', 'log_reg_metrics')
 
     if 'decision_tree' in models_to_run:
@@ -133,7 +133,7 @@ def evaluate_all_models(models_to_run, task_folder):
         dec_tree_model, dec_tree_params, dec_tree_metrics = tune_classification_model_hyperparameters(
             model_class, param_grid)
         
-        save_model(dec_tree_model, dec_tree_params, dec_tree_metrics, f'{task_folder}/decision_tree/',
+        save_model(dec_tree_model, dec_tree_params, dec_tree_metrics, f'{task_folder}/dec_tree/',
                    'dec_tree_model', 'dec_tree_params', 'dec_tree_metrics')
         
     if 'random_forest' in models_to_run:
@@ -212,8 +212,8 @@ if __name__ == "__main__":
     
     #train_logistic_regression()
     
-    models = ['log_reg_base', 'decision_tree', 'random_forest', 'gboost']
+    models = ['log_reg', 'decision_tree', 'random_forest', 'gboost']
     
-    #evaluate_all_models(models, 'models/classification')
+    evaluate_all_models(models, 'models/classification')
     
     find_best_model('models/classification')

@@ -1,6 +1,7 @@
 import pandas as pd
 import ast
 import re
+from sklearn.preprocessing import StandardScaler
 
 def remove_rows_with_missing_ratings(listings):
     
@@ -155,47 +156,43 @@ def replace_newlines(text):
 
 
 def clean_tabular_data(listings):
-    
-    '''The function `clean_tabular_data` takes a dataframe of listings, removes rows with missing ratings,
-    combines description strings, sets default feature values, replaces newlines in the description
-    column, and combines amenities strings.
-    
-    Parameters
-    ----------
-    listings
-        The parameter "listings" is a tabular data structure, such as a pandas DataFrame, that contains
-    information about listings.
-    
-    Returns
-    -------
-        the cleaned tabular data.
-    
-    '''
-    
     listings = remove_rows_with_missing_ratings(listings)
     listings = combine_description_strings(listings)
     listings = set_default_feature_values(listings)
     listings['Description'] = listings['Description'].apply(replace_newlines)
     listings = combine_amenities_strings(listings)
+    listings['guests'] = listings['guests'].astype(float)
+    listings['bedrooms'] = listings['bedrooms'].astype(float)
+
+    # normalize num cols
+    numeric_columns = listings.select_dtypes(include='number')
+    scaler = StandardScaler()
+    scaler.fit(numeric_columns)
+    normalized_columns = scaler.transform(numeric_columns)
+    normalized_data = listings.copy()
+    normalized_data[numeric_columns.columns] = normalized_columns
     
-    
-    return listings
+    return normalized_data
 
 
 def load_airbnb(label, num_only=True):
     
-    '''The function "load_airbnb" loads a clean tabular dataset from a CSV file and separates the numerical
-    features from the labels.
+    '''The function `load_airbnb` loads clean tabular data from a CSV file and returns the features and
+    labels, with an option to include only numerical columns.
     
     Parameters
     ----------
     label
-        The label parameter is the column name of the target variable in the dataset. It represents the
-    variable that we want to predict or classify.
+        The label parameter is the name of the column in the dataset that you want to use as the target
+    variable. This column will be separated from the rest of the data and returned as the labels.
+    num_only, optional
+        The `num_only` parameter is a boolean value that determines whether only numerical columns should
+    be included in the features or if all columns should be included. If `num_only` is set to `True`,
+    only numerical columns will be included in the features.
     
     Returns
     -------
-        two values: num_features and labels.
+        two values: `features` and `labels`.
     
     '''
     
