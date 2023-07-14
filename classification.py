@@ -152,7 +152,7 @@ def evaluate_all_models(models_to_run, task_folder):
         rnd_for_model, rnd_for_params, rnd_for_metrics = tune_classification_model_hyperparameters(
             model_class, param_grid)
         
-        save_model(rnd_for_model, rnd_for_params, rnd_for_metrics, f'{task_folder}/random_forest/',
+        save_model(rnd_for_model, rnd_for_params, rnd_for_metrics, f'{task_folder}/rnd_for/',
                    'rnd_for_model', 'rnd_for_params', 'rnd_for_metrics')
         
     if 'gboost' in models_to_run:
@@ -210,10 +210,10 @@ def find_best_model(task_folder):
 
 if __name__ == "__main__":
     
-    #train_logistic_regression()
+    train_logistic_regression()
     
     models = ['log_reg', 'decision_tree', 'random_forest', 'gboost']
     
-    evaluate_all_models(models, 'models/classification')
+    #evaluate_all_models(models, 'models/classification')
     
     find_best_model('models/classification')

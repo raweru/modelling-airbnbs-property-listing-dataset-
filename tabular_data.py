@@ -1,7 +1,8 @@
 import pandas as pd
 import ast
 import re
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, OrdinalEncoder, LabelEncoder
+
 
 def remove_rows_with_missing_ratings(listings):
     
@@ -161,18 +162,32 @@ def clean_tabular_data(listings):
     listings = set_default_feature_values(listings)
     listings['Description'] = listings['Description'].apply(replace_newlines)
     listings = combine_amenities_strings(listings)
-    listings['guests'] = listings['guests'].astype(float)
-    listings['bedrooms'] = listings['bedrooms'].astype(float)
-
-    # normalize num cols
-    numeric_columns = listings.select_dtypes(include='number')
+    
+    # standardize the continuous numeric features
+    numeric_columns = listings[['Cleanliness_rating', 'Accuracy_rating', 'Communication_rating', 'Location_rating', 'Check-in_rating', 'Value_rating', 'amenities_count']]
     scaler = StandardScaler()
     scaler.fit(numeric_columns)
-    normalized_columns = scaler.transform(numeric_columns)
-    normalized_data = listings.copy()
-    normalized_data[numeric_columns.columns] = normalized_columns
+    standardized_columns = scaler.transform(numeric_columns)
+    standardized_data = listings.copy()
+    standardized_data[numeric_columns.columns] = standardized_columns
     
-    return normalized_data
+    # encode ordinal features
+    standardized_data['bathrooms'] = standardized_data['bathrooms'].astype(int)
+    standardized_data['guests'] = standardized_data['guests'].astype(int)
+    standardized_data['beds'] = standardized_data['beds'].astype(int)
+    standardized_data['bedrooms'] = standardized_data['bedrooms'].astype(int)
+    columns_to_encode = ['guests', 'beds', 'bathrooms', 'bedrooms']
+    encoder = OrdinalEncoder()
+    encoded_values = encoder.fit_transform(standardized_data[columns_to_encode])
+    standardized_data[columns_to_encode] = encoded_values
+
+    # encode 'Category' labels
+    label_encoder = LabelEncoder()
+    encoded_labels = label_encoder.fit_transform(standardized_data['Category'])
+    standardized_data['Category'] = encoded_labels
+    
+    
+    return standardized_data
 
 
 def load_airbnb(label, num_only=True):

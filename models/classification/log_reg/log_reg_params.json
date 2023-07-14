@@ -1,1 +1,1 @@
-{"C": 0.1, "class_weight": "balanced", "max_iter": 100, "penalty": "l2", "solver": "saga"}
+{"C": 1.0, "class_weight": null, "max_iter": 100, "penalty": "l2", "solver": "liblinear"}

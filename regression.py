@@ -9,7 +9,14 @@ import itertools
 import os
 import joblib
 import json
+import warnings
+from sklearn.exceptions import ConvergenceWarning, DataConversionWarning
 
+# Ignore the convergence warning
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
+
+# Ignore the data conversion warning
+warnings.filterwarnings("ignore", category=DataConversionWarning)
 
 # Load the tabular data using load_airbnb function
 features, labels = load_airbnb(label="Price_Night")
@@ -172,6 +179,18 @@ def tune_regression_model_hyperparameters(model_class, param_grid):
     for param, value in best_metrics.items():
         print(f"{param}: {value}")
     print("--------------------------------")
+    if model == RandomForestRegressor():
+        feature_importances = model.feature_importances_
+
+        # Sort the feature importances in descending order
+        indices = np.argsort(feature_importances)[::-1]
+
+        # Print the feature ranking
+        print("Feature ranking:")
+        for f in range(X_train.shape[1]):
+            print(f"{f+1}. Feature '{X_train.columns[indices[f]]}': {feature_importances[indices[f]]}")
+
+
     
     return best_model, best_params, best_metrics
 
@@ -316,7 +335,7 @@ def find_best_model(models_to_evaluate):
             metrics = json.load(file)
 
         # Update the best model based on the performance metrics
-        if best_model is None or metrics["test_RMSE"] < best_metrics["test_RMSE"]:
+        if best_model is None or metrics["valid_RMSE"] < best_metrics["valid_RMSE"]:
             best_model = model
             best_params = hyperparameters
             best_metrics = metrics
