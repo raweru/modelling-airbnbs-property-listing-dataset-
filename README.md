@@ -36,12 +36,12 @@ Best performance was achieved with the SGD Regressor with the custom fine tuning
 
 | Regression Model Name            | Val RMSE          | Val R2                 |
 | -------------------------------- | ----------------- | ---------------------- |
-| SGD (no fine tuning)             | 0.613             | 0.408                  |
-| **SGD + Custom fine tuning**     | **0.583**         | **0.464**              |
-| SGD + GridSearchCV               | 0.612             | 0.410                  |
-| Decision Tree + GridSearchCV     | 0.672             | 0.289                  |
-| Random Forest + GridSearchCV     | 0.642             | 0.350                  |
-| Gradient Boosting + GridSearchCV | 0.670             | 0.293                  | 
+| SGD (no fine tuning)             | 80.74             | 0.384                  |
+| **SGD + Custom fine tuning**     | **78.93**         | **0.412**              |
+| SGD + GridSearchCV               | 81.26             | 0.376                  |
+| Decision Tree + GridSearchCV     | 86.77             | 0.289                  |
+| Random Forest + GridSearchCV     | 81.56             | 0.372                  |
+| Gradient Boosting + GridSearchCV | 85.61             | 0.308                  | 
 
 ## Milestone 5: Create a Classification Model
 
@@ -53,9 +53,22 @@ All models were fine tuned with sklearn GridSearchCV.
 | ------------------------------------ | ------------ |
 | Logistic Regression (no fine tuning) | 0.392        |
 | Logistic Regression  + GridSearchCV  | 0.408        |
-| Decision Tree + GridSearchCV         | 0.272        |
-| Random Forest + GridSearchCV         | 0.312        |
-| Gradient Boosting + GridSearchCV     | 0.352        |
+| Decision Tree + GridSearchCV         | 0.320        |
+| Random Forest + GridSearchCV         | 0.344        |
+| Gradient Boosting + GridSearchCV     | 0.344        |
 
 Best performing was Logistic Regression + GridSearchCV with 0.408 validation accuracy.
 
+## Milestone 6: Create a configurable neural network
+
+Taking the regression problem of predicting nightly listing prices a step further, we designed a configurable neural network, that can be easily used customized just by modifying the **nn_config.yaml** file. We then used different configuration combinations to fine tune the neural net and get the best model, which was then saved to models/neural_networks/regression folder. Training was visualized using Tensorboard.
+
+![Tensorboard](tensorboard.png)
+
+After fine tuning, we got the best model with **validation RMSE_loss 69.24 and R2 0.425**.
+
+Best Hyperparameters: {'learning_rate': 0.01, 'hidden_layer_width': 50, 'num_epochs': 100}
+
+Best Metrics: {'train': {'RMSE_loss': 82.37518584891541, 'R_squared': 0.4945861190742612, 'inference_latency': 0.00013928290071158573}, 'va290071158573}, 'val': {'RMSE_loss': 69.244868516922, 'R_squared': 0.4258490691013298, 'inference_latency': 0.000143613815{'RMSE_loss': 86.33076172}, 'test': {'RMSE_loss': 86.39434063434601, 'R_squared': 0.3407769412524374, 'inference_latency': 0.0001447854503508537}}
+
+![Tensorboard](nn.jpg)

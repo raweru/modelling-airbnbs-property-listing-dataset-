@@ -11,6 +11,7 @@ import joblib
 import json
 import warnings
 from sklearn.exceptions import ConvergenceWarning, DataConversionWarning
+import torch
 
 # Ignore the convergence warning
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
@@ -195,24 +196,38 @@ def tune_regression_model_hyperparameters(model_class, param_grid):
     return best_model, best_params, best_metrics
 
 
-def save_model(model, hyperparameters, metrics, folder, model_filename, params_filename, metrics_filename):
+def save_model(model, hyperparameters, metrics, folder, model_filename=None, params_filename=None, metrics_filename=None):
     # Create the directory if it doesn't exist
     os.makedirs(folder, exist_ok=True)
 
-    # Save the model
-    model_path = os.path.join(folder, f"{model_filename}.joblib")
-    joblib.dump(model, model_path)
+    if isinstance(model, torch.nn.Module):  # Check if the model is a PyTorch model
+        # Save the model
+        model_path = os.path.join(folder, "model.pt")
+        torch.save(model.state_dict(), model_path)
 
-    # Save the hyperparameters
-    hyperparameters_path = os.path.join(folder, f"{params_filename}.json")
-    with open(hyperparameters_path, "w") as file:
-        json.dump(hyperparameters, file)
+        # Save the hyperparameters
+        hyperparameters_path = os.path.join(folder, "hyperparameters.json")
+        with open(hyperparameters_path, "w") as file:
+            json.dump(hyperparameters, file)
 
-    # Save the metrics
-    metrics_path = os.path.join(folder, f"{metrics_filename}.json")
-    with open(metrics_path, "w") as file:
-        json.dump(metrics, file)
+        # Save the metrics
+        metrics_path = os.path.join(folder, "metrics.json")
+        with open(metrics_path, "w") as file:
+            json.dump(metrics, file)
+    else:
+        # Save the non-PyTorch model using joblib
+        model_path = os.path.join(folder, f"{model_filename}.joblib")
+        joblib.dump(model, model_path)
 
+        # Save the hyperparameters
+        hyperparameters_path = os.path.join(folder, f"{params_filename}.json")
+        with open(hyperparameters_path, "w") as file:
+            json.dump(hyperparameters, file)
+
+        # Save the metrics
+        metrics_path = os.path.join(folder, f"{metrics_filename}.json")
+        with open(metrics_path, "w") as file:
+            json.dump(metrics, file)
 
 
 def evaluate_all_models(models_to_run, task_folder):
