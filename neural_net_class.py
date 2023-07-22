@@ -20,7 +20,7 @@ import random
 class AirbnbNightlyPriceClassificationDataset(Dataset):
     def __init__(self):
         super().__init__()
-        self.X, self.y = load_airbnb(label="Category") 
+        self.X, self.y = load_airbnb(label="bedrooms") 
         self.label_encoder = LabelEncoder()
 
         # Convert ordinal encoded labels to class indices
@@ -181,8 +181,11 @@ class Trainer:
 
             # Save the metrics for the last epoch only
             if epoch == self.config['num_epochs'] - 1:
+                metrics_dict["train"]["CrossEntropyLoss"] = avg_train_loss
                 metrics_dict["train"]["accuracy"], metrics_dict["train"]["inference_latency"] = self.evaluate_model(self.train_loader)
+                metrics_dict["val"]["CrossEntropyLoss"] = avg_val_loss
                 metrics_dict["val"]["accuracy"], metrics_dict["val"]["inference_latency"] = self.evaluate_model(self.val_loader)
+                metrics_dict["test"]["CrossEntropyLoss"] = avg_test_loss
                 metrics_dict["test"]["accuracy"], metrics_dict["test"]["inference_latency"] = self.evaluate_model(self.test_loader)
 
             self.writer.add_scalar('Loss/Train', avg_train_loss, epoch)
@@ -254,7 +257,7 @@ def find_best_nn(train_loader, val_loader, test_loader):
         trainer = Trainer(model, train_loader, val_loader, test_loader, config)
         metrics_dict = trainer.train()
 
-        val_loss = metrics_dict["val"]["RMSE_loss"]
+        val_loss = metrics_dict["val"]["CrossEntropyLoss"]
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             best_model = model

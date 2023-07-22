@@ -75,7 +75,7 @@ Best Metrics: {'train': {'RMSE_loss': 82.37518584891541, 'R_squared': 0.49458611
 
 ## Milestone 7: Reuse the framework for another use-case with the Airbnb data
 
-Our final task was to reuse the classification shallow algorithms and repurpose the neural net but for a classification problem, using the 'bedrooms' column as the label. 
+Our final task was to reuse the classification shallow algorithms and repurpose the neural net for a classification problem, using the 'bedrooms' column as the label.
 
 Shallow algorithms inside classification.py could easily be reused just by replacing the 'label' keyword argument when loading the dataset.
 
@@ -84,4 +84,41 @@ Neural net needed some tweaking to get it do classification instead of regressio
 - Loss function needed changing to **nn.CrossEntropyLoss**.
 - Evaluation metrics needed changing to accuracy, precision, recall, and F1-score.
 
-Classification neural net code was saved into **neural_net_class.py**.
+Classification neural net was saved into **neural_net_class.py**.
+
+| Classification Model Name            | Val Accuracy |
+| ------------------------------------ | ------------ |
+| Logistic Regression (no fine tuning) | 0.704        |
+| Logistic Regression  + GridSearchCV  | 0.728        |
+| Decision Tree + GridSearchCV         | 0.760        |
+| **Random Forest + GridSearchCV**     | **0.808**    |
+| Gradient Boosting + GridSearchCV     | 0.784        |
+| MLP Classifier                       | 0.792        |
+
+### Shallow algorithm with the highest validation accuracy 0.808 was RandomForestClassifier.
+
+### MLP Classifier ('learning_rate': 0.001, 'hidden_layer_width': 100, 'num_epochs': 500) gave slightly lower value of 0.792.
+
+Best Hyperparameters:
+
+- Learning_rate: 0.001,
+- Hidden_layer_width: 100,
+- Num_epochs: 500.
+
+Best Metrics:
+
+- Training
+  - Accuracy: 0.774,
+  - Inference_latency: 3.196e-05,
+  - CrossEntropyLoss: 0.702.
+
+- Valuation:
+  - Accuracy': 0.792,
+  - Inference_latency: 3.214e-05,
+  - CrossEntropyLoss: 0.715.
+
+- Test:
+  - Accuracy: 0.774,
+  - Inference_latency: 3.225e-05,
+  - CrossEntropyLoss: 0.742.
+

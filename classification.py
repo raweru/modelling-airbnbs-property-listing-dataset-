@@ -20,7 +20,7 @@ warnings.filterwarnings("ignore", category=DataConversionWarning)
 
 
 # Load the tabular data using load_airbnb function
-features, labels = load_airbnb(label="Category")
+features, labels = load_airbnb(label="bedrooms")
 
 # Split the data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.3, random_state=42)

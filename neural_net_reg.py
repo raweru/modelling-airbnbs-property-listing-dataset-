@@ -20,10 +20,12 @@ import random
 class AirbnbNightlyPriceRegressionDataset(Dataset):
     def __init__(self):
         super().__init__()
-        self.X, self.y = load_airbnb(label="bedrooms")
+        self.X, self.y = load_airbnb(label="Price_Night")
+        self.X = torch.tensor(self.X, dtype=torch.float32)
+        self.y = torch.tensor(self.y, dtype=torch.float32)
     
     def __getitem__(self, idx):
-        return (torch.tensor(self.X.iloc[idx].values), torch.tensor(self.y.iloc[idx].values))
+        return (self.X[idx], self.y[idx])
     
     def __len__(self):
         return len(self.X)
@@ -81,7 +83,7 @@ class MLPRegressor(nn.Module):
     def forward(self, x):
         x = self.relu(self.fc1(x))
         x = self.fc2(x)
-        return x
+        return x.squeeze()  # Squeeze the output tensor to remove the singleton dimension
 
 
 config = get_nn_config()
