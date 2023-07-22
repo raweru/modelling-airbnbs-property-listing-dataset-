@@ -26,10 +26,6 @@ features, labels = load_airbnb(label="Price_Night")
 X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.3, random_state=42)
 X_test, X_valid, y_test, y_valid = train_test_split(X_test, y_test, test_size=0.5, random_state=42)
 
-y_train = y_train.values.ravel()  # Convert y_train to 1-dimensional array
-y_valid = y_valid.values.ravel()  # Convert y_valid to 1-dimensional array
-y_test = y_test.values.ravel()  # Convert y_test to 1-dimensional array
-
 
 def train_linear_regression():
     

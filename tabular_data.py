@@ -171,67 +171,46 @@ def clean_tabular_data(listings):
     standardized_data = listings.copy()
     standardized_data[numeric_columns.columns] = standardized_columns
     
-    # encode ordinal features
+    # Encode ordinal features
     standardized_data['bathrooms'] = standardized_data['bathrooms'].astype(int)
     standardized_data['guests'] = standardized_data['guests'].astype(int)
     standardized_data['beds'] = standardized_data['beds'].astype(int)
     standardized_data['bedrooms'] = standardized_data['bedrooms'].astype(int)
+
     columns_to_encode = ['guests', 'beds', 'bathrooms', 'bedrooms']
     encoder = OrdinalEncoder()
     encoded_values = encoder.fit_transform(standardized_data[columns_to_encode])
     standardized_data[columns_to_encode] = encoded_values
+    standardized_data[columns_to_encode] = standardized_data[columns_to_encode].astype(int)
 
-    # encode 'Category' labels
+    # Encode 'Category' labels
     label_encoder = LabelEncoder()
     encoded_labels = label_encoder.fit_transform(standardized_data['Category'])
     standardized_data['Category'] = encoded_labels
-    
     
     return standardized_data
 
 
 def load_airbnb(label, num_only=True):
     
-    '''The function `load_airbnb` loads clean tabular data from a CSV file and returns the features and
-    labels, with an option to include only numerical columns.
-    
-    Parameters
-    ----------
-    label
-        The label parameter is the name of the column in the dataset that you want to use as the target
-    variable. This column will be separated from the rest of the data and returned as the labels.
-    num_only, optional
-        The `num_only` parameter is a boolean value that determines whether only numerical columns should
-    be included in the features or if all columns should be included. If `num_only` is set to `True`,
-    only numerical columns will be included in the features.
-    
-    Returns
-    -------
-        two values: `features` and `labels`.
-    
-    '''
-    
     clean_data = pd.read_csv('tabular_data/clean_tabular_data.csv')
-    
-    labels = pd.DataFrame(clean_data[label], columns=[label])
+    clean_data.reset_index(drop=True, inplace=True)  # Reset the index
 
-    if num_only == True:
-        
+    labels = clean_data[label].values  # Convert to NumPy array
+
+    if num_only:
         num_columns = clean_data.select_dtypes(exclude=['object']).columns
-        
-        if label in num_columns:
-            
-            features = clean_data[num_columns].drop(columns=[label])
 
+        if label in num_columns:
+            features = clean_data[num_columns].drop(columns=[label]).values  # Convert to NumPy array
         else:
-            features = clean_data[num_columns]
-            
-    if num_only == False:
-        
-        features = clean_data.drop(columns=[label])
-        
+            features = clean_data[num_columns].values  # Convert to NumPy array
+
+    else:
+        features = clean_data.drop(columns=[label]).values  # Convert to NumPy array
 
     return features, labels
+
 
 
 if __name__ == "__main__":

@@ -214,6 +214,6 @@ if __name__ == "__main__":
     
     models = ['log_reg', 'decision_tree', 'random_forest', 'gboost']
     
-    #evaluate_all_models(models, 'models/classification')
+    evaluate_all_models(models, 'models/classification')
     
     find_best_model('models/classification')

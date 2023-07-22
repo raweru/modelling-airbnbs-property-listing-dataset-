@@ -1,6 +1,7 @@
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 import numpy as np
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import accuracy_score
 import torch
 from torch.utils.data import Dataset
 import torch.nn as nn
@@ -11,25 +12,28 @@ import yaml
 import os
 import time
 from datetime import datetime
-from regression import save_model
 import itertools
 import json
 import random
 
 
-class AirbnbNightlyPriceRegressionDataset(Dataset):
+class AirbnbNightlyPriceClassificationDataset(Dataset):
     def __init__(self):
         super().__init__()
-        self.X, self.y = load_airbnb(label="Price_Night")
+        self.X, self.y = load_airbnb(label="Category") 
+        self.label_encoder = LabelEncoder()
+
+        # Convert ordinal encoded labels to class indices
+        self.y = self.label_encoder.fit_transform(self.y)
     
     def __getitem__(self, idx):
-        return (torch.tensor(self.X.iloc[idx].values), torch.tensor(self.y.iloc[idx].values))
+        return (torch.tensor(self.X[idx]), torch.tensor(self.y[idx]))  # Use standard indexing here
     
     def __len__(self):
         return len(self.X)
 
 
-dataset = AirbnbNightlyPriceRegressionDataset()
+dataset = AirbnbNightlyPriceClassificationDataset()
 batch_size = 8
 
 # Split the dataset into training, validation and test sets
@@ -38,15 +42,15 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_
 X_test, X_val, y_test, y_val = train_test_split(X_test, y_test, test_size=0.5, random_state=42)
 
 # Create the training dataset
-train_dataset = AirbnbNightlyPriceRegressionDataset()
+train_dataset = AirbnbNightlyPriceClassificationDataset()
 train_dataset.X, train_dataset.y = X_train, y_train
 
 # Create the validation dataset
-val_dataset = AirbnbNightlyPriceRegressionDataset()
+val_dataset = AirbnbNightlyPriceClassificationDataset()
 val_dataset.X, val_dataset.y = X_val, y_val
 
 # Create the test dataset
-test_dataset = AirbnbNightlyPriceRegressionDataset()
+test_dataset = AirbnbNightlyPriceClassificationDataset()
 test_dataset.X, test_dataset.y = X_test, y_test
 
 # Create the data loaders
@@ -61,23 +65,13 @@ def get_nn_config():
     return config
 
 
-class LinearRegression(nn.Module):
-    def __init__(self):
-        super().__init__()
-        # initalise the parameters
-        self.linear_layer = nn.Linear(12, 1)
-
-    def forward(self, features):
-        return self.linear_layer(features)  # make prediction
-
-
-class MLPRegressor(nn.Module):
-    def __init__(self, config):
-        super(MLPRegressor, self).__init__()
+class MLPClassifier(nn.Module):
+    def __init__(self, config, num_classes):
+        super(MLPClassifier, self).__init__()
         self.fc1 = nn.Linear(12, config["hidden_layer_width"])
-        self.fc2 = nn.Linear(config["hidden_layer_width"], 1)
+        self.fc2 = nn.Linear(config["hidden_layer_width"], num_classes)
         self.relu = nn.ReLU()
-    
+
     def forward(self, x):
         x = self.relu(self.fc1(x))
         x = self.fc2(x)
@@ -85,7 +79,8 @@ class MLPRegressor(nn.Module):
 
 
 config = get_nn_config()
-model = MLPRegressor(config)
+num_classes = 9  
+model = MLPClassifier(config, num_classes)
 
 
 class Trainer:
@@ -96,7 +91,7 @@ class Trainer:
         self.test_loader = test_loader
         self.config = config
         self.optimizer = torch.optim.SGD(model.parameters(), lr=config["learning_rate"])
-        self.loss_function = nn.MSELoss()
+        self.loss_function = nn.CrossEntropyLoss()  # Use CrossEntropyLoss for multi-class classification
         self.writer = SummaryWriter()
 
     def evaluate_model(self, data_loader):
@@ -109,34 +104,29 @@ class Trainer:
         with torch.no_grad():
             for features, targets in data_loader:
                 features = features.to(torch.float32)
-                targets = targets.to(torch.float32)
+                targets = targets.to(torch.long)  # Convert targets to long for CrossEntropyLoss
 
                 # Make predictions
                 output = self.model(features)
 
                 # Convert predictions and targets to numpy arrays
-                predictions.extend(output.cpu().numpy())
+                predictions.extend(output.argmax(dim=1).cpu().numpy())
                 labels.extend(targets.cpu().numpy())
 
         end_time = time.time()
         inference_latency = (end_time - start_time) / n_samples
-        predictions = np.array(predictions)
-        labels = np.array(labels)
 
-        # Calculate RMSE
-        rmse = np.sqrt(mean_squared_error(labels, predictions))
+        # Calculate accuracy
+        accuracy = accuracy_score(labels, predictions)
 
-        # Calculate R2 score
-        r2 = r2_score(labels, predictions)
-
-        return rmse, r2, inference_latency
+        return accuracy, inference_latency
 
     def train(self):
         start_time = time.time()
         metrics_dict = {
-            "train": {"RMSE_loss": None, "R_squared": None, "inference_latency": None},
-            "val": {"RMSE_loss": None, "R_squared": None, "inference_latency": None},
-            "test": {"RMSE_loss": None, "R_squared": None, "inference_latency": None}
+            "train": {"accuracy": None, "inference_latency": None},
+            "val": {"accuracy": None, "inference_latency": None},
+            "test": {"accuracy": None, "inference_latency": None}
         }
 
         for epoch in range(self.config["num_epochs"]):
@@ -145,9 +135,9 @@ class Trainer:
             # Training loop
             for features, labels in self.train_loader:
                 features = features.to(torch.float32)
-                labels = labels.to(torch.float32)
+                labels = labels.to(torch.long)  # Convert targets to long for CrossEntropyLoss
                 prediction = self.model(features)
-                loss = torch.sqrt(self.loss_function(prediction, labels))
+                loss = self.loss_function(prediction, labels)
 
                 self.optimizer.zero_grad()
                 loss.backward()
@@ -164,9 +154,9 @@ class Trainer:
 
                 for features, labels in self.val_loader:
                     features = features.to(torch.float32)
-                    labels = labels.to(torch.float32)
+                    labels = labels.to(torch.long)  # Convert targets to long for CrossEntropyLoss
                     prediction = self.model(features)
-                    loss = torch.sqrt(self.loss_function(prediction, labels))
+                    loss = self.loss_function(prediction, labels)
                     running_val_loss += loss.item()
 
                 # Calculate average validation loss for the epoch
@@ -178,9 +168,9 @@ class Trainer:
 
                 for features, labels in self.test_loader:
                     features = features.to(torch.float32)
-                    labels = labels.to(torch.float32)
+                    labels = labels.to(torch.long)  # Convert targets to long for CrossEntropyLoss
                     prediction = self.model(features)
-                    loss = torch.sqrt(self.loss_function(prediction, labels))
+                    loss = self.loss_function(prediction, labels)
                     running_test_loss += loss.item()
 
                 # Calculate average test loss for the epoch
@@ -191,15 +181,9 @@ class Trainer:
 
             # Save the metrics for the last epoch only
             if epoch == self.config['num_epochs'] - 1:
-                metrics_dict["train"]["RMSE_loss"] = avg_train_loss
-                metrics_dict["train"]["R_squared"] = self.evaluate_model(self.train_loader)[1]
-                metrics_dict["train"]["inference_latency"] = self.evaluate_model(self.train_loader)[2]
-                metrics_dict["val"]["RMSE_loss"] = avg_val_loss
-                metrics_dict["val"]["R_squared"] = self.evaluate_model(self.val_loader)[1]
-                metrics_dict["val"]["inference_latency"] = self.evaluate_model(self.val_loader)[2]
-                metrics_dict["test"]["RMSE_loss"] = avg_test_loss
-                metrics_dict["test"]["R_squared"] = self.evaluate_model(self.test_loader)[1]
-                metrics_dict["test"]["inference_latency"] = self.evaluate_model(self.test_loader)[2]
+                metrics_dict["train"]["accuracy"], metrics_dict["train"]["inference_latency"] = self.evaluate_model(self.train_loader)
+                metrics_dict["val"]["accuracy"], metrics_dict["val"]["inference_latency"] = self.evaluate_model(self.val_loader)
+                metrics_dict["test"]["accuracy"], metrics_dict["test"]["inference_latency"] = self.evaluate_model(self.test_loader)
 
             self.writer.add_scalar('Loss/Train', avg_train_loss, epoch)
             self.writer.add_scalar('Loss/Val', avg_val_loss, epoch)
@@ -221,7 +205,7 @@ metrics_dict["training_duration"] = trainer.training_duration
 
 # Save the model and metrics in a new folder based on current date and time
 current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-folder_path = os.path.join("models", "neural_networks", "regression", current_time)
+folder_path = os.path.join("models", "neural_networks", "classification", current_time)
 hyperparameters = {
     "learning_rate": config["learning_rate"],
     "hidden_layer_width": config["hidden_layer_width"],
@@ -257,7 +241,6 @@ def generate_nn_configs():
     return nn_configs
 
 
-
 def find_best_nn(train_loader, val_loader, test_loader):
     best_model = None
     best_metrics = None
@@ -267,7 +250,7 @@ def find_best_nn(train_loader, val_loader, test_loader):
     configs = generate_nn_configs()
     for i, config in enumerate(configs):
         print(f"Training model {i + 1} out of {len(configs)}...")
-        model = MLPRegressor(config)
+        model = MLPClassifier(config, num_classes=9)
         trainer = Trainer(model, train_loader, val_loader, test_loader, config)
         metrics_dict = trainer.train()
 
@@ -284,13 +267,12 @@ def find_best_nn(train_loader, val_loader, test_loader):
 
     return best_model, best_metrics, best_hyperparameters
 
-
 # Assuming you already have the train_loader, val_loader, and test_loader defined
 best_model, best_metrics, best_hyperparameters = find_best_nn(train_loader, val_loader, test_loader)
 
 # Save the best model, its metrics, and hyperparameters
 current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-folder_path = os.path.join("models", "neural_networks", "regression", current_time)
+folder_path = os.path.join("models", "neural_networks", "classification", current_time)
 os.makedirs(folder_path, exist_ok=True)
 
 # Save the model

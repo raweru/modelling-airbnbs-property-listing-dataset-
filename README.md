@@ -28,7 +28,7 @@ After we cleaned the data, we took only numeric data to generate regression mode
 
 We used Regression Models from Scikit-Learn library and compared them to find the best one.
 
-Only data preprocessing that we did on numeric data in the previous step was imputing missing values and feature scaling. So taking it a step further we could have done some feature selection and checking for outliers as well.
+Data preprocessing steps that we took on numeric data in the previous step were encoding ordinal features, imputing missing values and feature scaling. Taking it a step further we could have done some feature selection and checking for outliers as well.
 
 Starting point was the default SGD Regressor without any fine tuning. Next two models were the same SGD Regressor but fine tuned using GridSearchCV and a custom fine tune function. We also tried GridSearchCV on a Decision Tree model, Random Forest model and a Gradient Boosting Regressor.
 
@@ -61,7 +61,7 @@ Best performing was Logistic Regression + GridSearchCV with 0.408 validation acc
 
 ## Milestone 6: Create a configurable neural network
 
-Taking the regression problem of predicting nightly listing prices a step further, we designed a configurable neural network, that can be easily used customized just by modifying the **nn_config.yaml** file. We then used different configuration combinations to fine tune the neural net and get the best model, which was then saved to models/neural_networks/regression folder. Training was visualized using Tensorboard.
+Taking the regression problem of predicting nightly listing prices a step further, we designed a configurable neural network, that can be easily used customized just by modifying the **nn_config.yaml** file. We then used different configuration combinations to fine tune the neural net and get the best model, which was then saved to models/neural_networks/regression folder. Training was visualized using Tensorboard. Code can be found in **neural_net_reg.py**.
 
 ![Tensorboard](tensorboard.png)
 
@@ -72,3 +72,16 @@ Best Hyperparameters: {'learning_rate': 0.01, 'hidden_layer_width': 50, 'num_epo
 Best Metrics: {'train': {'RMSE_loss': 82.37518584891541, 'R_squared': 0.4945861190742612, 'inference_latency': 0.00013928290071158573}, 'va290071158573}, 'val': {'RMSE_loss': 69.244868516922, 'R_squared': 0.4258490691013298, 'inference_latency': 0.000143613815{'RMSE_loss': 86.33076172}, 'test': {'RMSE_loss': 86.39434063434601, 'R_squared': 0.3407769412524374, 'inference_latency': 0.0001447854503508537}}
 
 ![Tensorboard](nn.jpg)
+
+## Milestone 7: Reuse the framework for another use-case with the Airbnb data
+
+Our final task was to reuse the classification shallow algorithms and repurpose the neural net but for a classification problem, using the 'bedrooms' column as the label. 
+
+Shallow algorithms inside classification.py could easily be reused just by replacing the 'label' keyword argument when loading the dataset.
+
+Neural net needed some tweaking to get it do classification instead of regression:
+
+- Loss function needed changing to **nn.CrossEntropyLoss**.
+- Evaluation metrics needed changing to accuracy, precision, recall, and F1-score.
+
+Classification neural net code was saved into **neural_net_class.py**.
