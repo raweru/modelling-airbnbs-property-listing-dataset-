@@ -32,16 +32,16 @@ Data preprocessing steps that we took on numeric data in the previous step were 
 
 Starting point was the default SGD Regressor without any fine tuning. Next two models were the same SGD Regressor but fine tuned using GridSearchCV and a custom fine tune function. We also tried GridSearchCV on a Decision Tree model, Random Forest model and a Gradient Boosting Regressor.
 
-Best performance was achieved with the SGD Regressor with the custom fine tuning function, which gave the lowest value validation RMSE and highest value validation R2.
+Best performance was achieved with the SGD Regressor with the custom fine tuning function, which gave the lowest value validation RMSE and highest value validation R_squared.
 
-| Regression Model Name            | Val RMSE          | Val R2                 |
+| Regression Model Name            | Val RMSE          | Val R_squared          |
 | -------------------------------- | ----------------- | ---------------------- |
 | SGD (no fine tuning)             | 80.74             | 0.384                  |
 | **SGD + Custom fine tuning**     | **78.93**         | **0.412**              |
 | SGD + GridSearchCV               | 81.26             | 0.376                  |
 | Decision Tree + GridSearchCV     | 86.77             | 0.289                  |
 | Random Forest + GridSearchCV     | 81.56             | 0.372                  |
-| Gradient Boosting + GridSearchCV | 85.61             | 0.308                  | 
+| Gradient Boosting + GridSearchCV | 85.61             | 0.308                  |
 
 ## Milestone 5: Create a Classification Model
 
@@ -65,7 +65,7 @@ Taking the regression problem of predicting nightly listing prices a step furthe
 
 ![Tensorboard](tensorboard.png)
 
-After fine tuning, we got the best model with **validation RMSE_loss 69.24 and R2 0.425**.
+After fine tuning, we got the best model with **validation RMSE_loss 69.24 and R_squared 0.425**.
 
 Best Hyperparameters: {'learning_rate': 0.01, 'hidden_layer_width': 50, 'num_epochs': 100}
 
@@ -95,9 +95,26 @@ Classification neural net was saved into **neural_net_class.py**.
 | Gradient Boosting + GridSearchCV     | 0.784        |
 | MLP Classifier                       | 0.792        |
 
-### Shallow algorithm with the highest validation accuracy 0.808 was RandomForestClassifier.
+### RandomForestClassifier was the best performing shallow algorithm
 
-### MLP Classifier ('learning_rate': 0.001, 'hidden_layer_width': 100, 'num_epochs': 500) gave slightly lower value of 0.792.
+Best Hyperparameters:
+
+- Criterion: gini,
+- Max_depth: 10,
+- Max_features: sqrt,
+- Min_samples_leaf: 1,
+- Min_samples_split: 5,
+- N_estimators: 100.
+
+Best Metrics:
+
+- Train_accuracy: 0.967,
+- Validation_accuracy: 0.808,
+- Test_accuracy: 0.782.
+
+### MLP Classifier gave a slightly lower value of 0.792
+
+![nnclass](nn_class.png)
 
 Best Hyperparameters:
 
