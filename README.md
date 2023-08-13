@@ -25,7 +25,7 @@ We are about to start developing a framework for evaluating a wide range of mach
 
 In this milestone, the raw Airbnb property listing data undergoes a series of cleaning and transformation steps to ensure its suitability for analysis and model training. The data preparation process primarily focuses on the tabular data component of the dataset. Below, we provide an overview of the key functions and steps used to achieve this goal.
 
-All models and functions here were created inside tabular_data.py file.
+All functions here were created inside tabular_data.py file.
 
 ### Data Cleaning and Transformation Functions
 
