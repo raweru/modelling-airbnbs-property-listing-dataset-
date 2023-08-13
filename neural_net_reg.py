@@ -146,7 +146,7 @@ class MLPRegressor(nn.Module):
         
         super(MLPRegressor, self).__init__()
         self.depth = config["depth"]
-        self.hidden_layer_widths = config["hidden_layer_widths"]  # List of hidden layer widths
+        self.hidden_layer_widths = config["hidden_layer_widths"]
         self.fc_layers = nn.ModuleList()
         
         # Input layer
@@ -430,24 +430,22 @@ def generate_nn_configs():
     '''
     
     learning_rates = [0.001, 0.01, 0.1]
-    hidden_layer_widths = [25, 50, 100]
+    hidden_layer_widths = [4, 16, 32, 64]
     num_epochs = [100, 200, 500]
     depths = [2, 3, 4]
 
-    configs = list(itertools.product(learning_rates, num_epochs, depths))
-
     nn_configs = []
-    for config in configs:
-        for width_config in itertools.product(hidden_layer_widths, repeat=config[2] - 1):
-            nn_config = {
-                "learning_rate": config[0],
-                "hidden_layer_widths": [config[1]] + list(width_config),
-                "num_epochs": config[1],
-                "depth": config[2]
-            }
-            nn_configs.append(nn_config)
-            if len(nn_configs) >= 16:
-                break
+
+    for config in itertools.product(learning_rates, hidden_layer_widths, num_epochs, depths):
+        learning_rate, width, num_epoch, depth = config
+        width_configurations = [width] * (depth - 1)
+        nn_config = {
+            "learning_rate": learning_rate,
+            "hidden_layer_widths": [width] + width_configurations,
+            "num_epochs": num_epoch,
+            "depth": depth
+        }
+        nn_configs.append(nn_config)
         if len(nn_configs) >= 16:
             break
 
@@ -510,26 +508,21 @@ if __name__ == "__main__":
     dataset = AirbnbNightlyPriceRegressionDataset()
     batch_size = 8
 
-    # Split the dataset into training, validation and test sets
     X, y = dataset.X, dataset.y
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
     X_test, X_val, y_test, y_val = train_test_split(X_test, y_test, test_size=0.5, random_state=42)
 
-    # Create the training dataset
     train_dataset = AirbnbNightlyPriceRegressionDataset()
     train_dataset.X, train_dataset.y = X_train, y_train
 
-    # Create the validation dataset
     val_dataset = AirbnbNightlyPriceRegressionDataset()
     val_dataset.X, val_dataset.y = X_val, y_val
 
-    # Create the test dataset
     test_dataset = AirbnbNightlyPriceRegressionDataset()
     test_dataset.X, test_dataset.y = X_test, y_test
 
     config = get_nn_config()
 
-    # Create the data loaders
     train_loader = DataLoader(train_dataset, shuffle=True, batch_size=batch_size)
     val_loader = DataLoader(val_dataset, shuffle=True, batch_size=batch_size)
     test_loader = DataLoader(test_dataset, shuffle=True, batch_size=batch_size)

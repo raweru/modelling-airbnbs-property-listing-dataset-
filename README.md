@@ -246,7 +246,7 @@ As with our previous models, we took care to ensure that our hard work is preser
 
 With this configurable neural network, you can confidently tackle predictive tasks, harnessing the power of artificial intelligence to extract insights and make informed decisions. Your journey into the world of neural networks has just begun, and the possibilities are limitless!
 
-<img src="nn.jpg" alt="Tensorboard Screenshot" width="500">
+<img src="net.png" alt="Tensorboard Screenshot" width="500">
 
 ## Milestone 7: Reuse the framework for another use-case with the Airbnb data
 
