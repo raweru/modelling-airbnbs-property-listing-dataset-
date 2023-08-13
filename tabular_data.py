@@ -1,12 +1,13 @@
-import pandas as pd
 import ast
+import pandas as pd
 import re
-from sklearn.preprocessing import StandardScaler, OrdinalEncoder, LabelEncoder
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 
 def remove_rows_with_missing_ratings(listings):
     
-    '''The function removes rows with missing ratings from a given dataframe.
+    '''
+    The function removes rows with missing ratings from a given dataframe.
     
     Parameters
     ----------
@@ -19,7 +20,6 @@ def remove_rows_with_missing_ratings(listings):
     Returns
     -------
         the updated "listings" dataframe after removing rows with missing ratings.
-    
     '''
     
     listings = listings.drop('Unnamed: 19', axis=1)
@@ -31,7 +31,8 @@ def remove_rows_with_missing_ratings(listings):
 
 def combine_description_strings(listings):
     
-    '''The function `combine_description_strings` takes a DataFrame of listings, drops rows with missing
+    '''
+    The function `combine_description_strings` takes a DataFrame of listings, drops rows with missing
     descriptions, removes a specific listing, converts strings of lists to actual lists, removes
     specific parts from the description, and joins the remaining description strings.
     
@@ -45,7 +46,6 @@ def combine_description_strings(listings):
     Returns
     -------
         the modified "listings" dataframe.
-    
     '''
     
     listings = listings.dropna(subset=['Description'])
@@ -68,7 +68,8 @@ def combine_description_strings(listings):
 
 def combine_amenities_strings(listings):
     
-    '''The function `combine_amenities_strings` takes a DataFrame `listings` and performs several
+    '''
+    The function `combine_amenities_strings` takes a DataFrame `listings` and performs several
     operations to clean and combine the strings in the 'Amenities' column.
     
     Parameters
@@ -82,7 +83,6 @@ def combine_amenities_strings(listings):
     Returns
     -------
         the modified 'listings' dataframe with the 'Amenities' column updated.
-    
     '''
     
     # strings of a list of strings changed to list of strings
@@ -97,13 +97,13 @@ def combine_amenities_strings(listings):
         
     listings['Amenities'] = listings['Amenities'].apply(lambda x: '. '.join(x) if isinstance(x, list) else x)
     
-    
     return listings
 
 
 def set_default_feature_values(listings):
     
-    '''The function sets default values for specific features in a listings dataset.
+    '''
+    The function sets default values for specific features in a listings dataset.
     
     Parameters
     ----------
@@ -115,7 +115,6 @@ def set_default_feature_values(listings):
     -------
         the updated "listings" dictionary with default values filled in for any missing values in the
     "guests", "beds", "bathrooms", and "bedrooms" features.
-    
     '''
     
     default_value = 1
@@ -124,13 +123,13 @@ def set_default_feature_values(listings):
     for feature in features:
         listings[feature] = listings[feature].fillna(default_value)
     
-    
     return listings
 
 
 def replace_newlines(text):
     
-    '''The function `replace_newlines` replaces consecutive newlines in a text with either a dot and a
+    '''
+    The function `replace_newlines` replaces consecutive newlines in a text with either a dot and a
     space or a single space, depending on whether there is a non-alphanumeric character in front of the
     newlines.
     
@@ -143,7 +142,6 @@ def replace_newlines(text):
     -------
         the modified text with consecutive newlines replaced either with a dot and a space or with a single
     space, depending on whether there is a non-alphanumeric character in front of the newlines.
-    
     '''
     
     # Replace consecutive newlines with a dot and a space if no non-alphanumeric character in front
@@ -152,47 +150,55 @@ def replace_newlines(text):
     # Replace consecutive newlines with a single space if a non-alphanumeric character is in front
     text = re.sub(r'(?<=\W)\n+', ' ', text)
     
-    
     return text
 
 
 def clean_tabular_data(listings):
+    
+    '''
+    The function `clean_tabular_data` takes a dataframe of listings, performs various cleaning and
+    preprocessing steps, and returns a standardized version of the data.
+    
+    Parameters
+    ----------
+    listings
+        The `listings` parameter is a DataFrame containing tabular data.
+    
+    Returns
+    -------
+        the standardized and encoded tabular data.
+    '''
+    
     listings = remove_rows_with_missing_ratings(listings)
     listings = combine_description_strings(listings)
     listings = set_default_feature_values(listings)
     listings['Description'] = listings['Description'].apply(replace_newlines)
     listings = combine_amenities_strings(listings)
     
-    # standardize the continuous numeric features
-    numeric_columns = listings[['Cleanliness_rating', 'Accuracy_rating', 'Communication_rating', 'Location_rating', 'Check-in_rating', 'Value_rating', 'amenities_count']]
-    scaler = StandardScaler()
-    scaler.fit(numeric_columns)
-    standardized_columns = scaler.transform(numeric_columns)
-    standardized_data = listings.copy()
-    standardized_data[numeric_columns.columns] = standardized_columns
-    
-    # Encode ordinal features
-    standardized_data['bathrooms'] = standardized_data['bathrooms'].astype(int)
-    standardized_data['guests'] = standardized_data['guests'].astype(int)
-    standardized_data['beds'] = standardized_data['beds'].astype(int)
-    standardized_data['bedrooms'] = standardized_data['bedrooms'].astype(int)
-
-    columns_to_encode = ['guests', 'beds', 'bathrooms', 'bedrooms']
-    encoder = OrdinalEncoder()
-    encoded_values = encoder.fit_transform(standardized_data[columns_to_encode])
-    standardized_data[columns_to_encode] = encoded_values
-    standardized_data[columns_to_encode] = standardized_data[columns_to_encode].astype(int)
-
-    # Encode 'Category' labels
-    label_encoder = LabelEncoder()
-    encoded_labels = label_encoder.fit_transform(standardized_data['Category'])
-    standardized_data['Category'] = encoded_labels
-    
     return standardized_data
 
 
 def load_airbnb(label, num_only=True):
     
+    '''
+    The function `load_airbnb` loads tabular data from a CSV file and returns the features and labels as
+    NumPy arrays, with an option to include only numerical columns.
+    
+    Parameters
+    ----------
+    label
+        The label parameter is the column name of the target variable in the dataset. It is the variable
+    that you want to predict or classify.
+    num_only, optional
+        The `num_only` parameter is a boolean flag that determines whether only numerical columns should be
+    included in the features or all columns (including categorical columns). If `num_only` is set to
+    `True`, only numerical columns will be included in the features. If `num_only` is set to `
+    
+    Returns
+    -------
+        The function `load_airbnb` returns two values: `features` and `labels`.
+    '''
+
     clean_data = pd.read_csv('tabular_data/clean_tabular_data.csv')
     clean_data.reset_index(drop=True, inplace=True)  # Reset the index
 
@@ -214,6 +220,27 @@ def load_airbnb(label, num_only=True):
 
 
 if __name__ == "__main__":
+    
     listings = pd.read_csv('tabular_data/listing.csv')
-    cleaned_tab_data = clean_tabular_data(listings)
-    cleaned_tab_data.to_csv("tabular_data/clean_tabular_data.csv", index=False)
+    standardized_data = clean_tabular_data(listings)
+    
+    # Encode ordinal features
+    standardized_data['bathrooms'] = standardized_data['bathrooms'].astype(int)
+    standardized_data['guests'] = standardized_data['guests'].astype(int)
+    standardized_data['beds'] = standardized_data['beds'].astype(int)
+    standardized_data['bedrooms'] = standardized_data['bedrooms'].astype(int)
+    
+    # standardize the numeric features
+    numeric_columns = listings[['bathrooms', 'guests', 'beds', 'bedrooms', 'Cleanliness_rating', 'Accuracy_rating', 'Communication_rating', 'Location_rating', 'Check-in_rating', 'Value_rating', 'amenities_count']]
+    scaler = StandardScaler()
+    scaler.fit(numeric_columns)
+    standardized_columns = scaler.transform(numeric_columns)
+    standardized_data = listings.copy()
+    standardized_data[numeric_columns.columns] = standardized_columns
+
+    # Encode 'Category' labels
+    label_encoder = LabelEncoder()
+    encoded_labels = label_encoder.fit_transform(standardized_data['Category'])
+    standardized_data['Category'] = encoded_labels
+    
+    standardized_data.to_csv("tabular_data/clean_tabular_data.csv", index=False)

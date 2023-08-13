@@ -1,45 +1,35 @@
-from tabular_data import load_airbnb
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn. ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.metrics import classification_report, accuracy_score
-from sklearn.model_selection import train_test_split, GridSearchCV
-from regression import save_model
-import warnings
-from sklearn.exceptions import ConvergenceWarning, DataConversionWarning
 import json
-import os
 import joblib
+import os
+import warnings
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.exceptions import ConvergenceWarning, DataConversionWarning
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.model_selection import GridSearchCV
+from sklearn.tree import DecisionTreeClassifier
+from regression import load_and_split_data, save_model
 
 
-# Ignore the convergence warning
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
-
-# Ignore the data conversion warning
 warnings.filterwarnings("ignore", category=DataConversionWarning)
-
-
-# Load the tabular data using load_airbnb function
-features, labels = load_airbnb(label="bedrooms")
-
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.3, random_state=42)
-X_test, X_valid, y_test, y_valid = train_test_split(X_test, y_test, test_size=0.5, random_state=42)
 
 
 def train_logistic_regression():
     
-    # Initialize and train the linear regression model
+    '''
+    The function `train_logistic_regression` trains a logistic regression model, computes predictions
+    for the training, validation, and test sets, and prints the classification report and accuracy for
+    each set.
+    '''
+    
     model = LogisticRegression()
     model.fit(X_train, y_train)
 
-    # Compute predictions for the training set
     train_predictions = model.predict(X_train)
     
-    # Compute predictions for the validation set
     valid_predictions = model.predict(X_valid)
 
-    # Compute predictions for the test set
     test_predictions = model.predict(X_test)
     
     print("--------------------------------")
@@ -62,6 +52,26 @@ def train_logistic_regression():
 
 
 def tune_classification_model_hyperparameters(model_class, param_grid):
+    
+    '''
+    The function tunes the hyperparameters of a classification model using grid search and returns the
+    best model, best hyperparameters, and performance metrics.
+    
+    Parameters
+    ----------
+    model_class
+        The `model_class` parameter is the class of the classification model that you want to tune the
+    hyperparameters for. It should be a class object, such as `RandomForestClassifier` or
+    `LogisticRegression`.
+    param_grid
+        The `param_grid` is a dictionary that contains the hyperparameters and their corresponding values
+    that you want to tune for the classification model. It should be in the following format:
+    
+    Returns
+    -------
+        the best model found during the grid search, the best hyperparameters for that model, and the
+    performance metrics (accuracy) of the best model on the training, validation, and test sets.
+    '''
     
     best_metrics = {}
     
@@ -99,82 +109,83 @@ def tune_classification_model_hyperparameters(model_class, param_grid):
 
 
 def evaluate_all_models(models_to_run, task_folder):
+    '''
+    The function `evaluate_all_models` takes a list of models to run and a task folder as input, and for
+    each model in the list, it tunes the hyperparameters, saves the model, hyperparameters, and metrics
+    in the task folder.
 
-    if 'log_reg' in models_to_run:
-        
-        model_class = LogisticRegression
-        
-        param_grid = {
+    Parameters
+    ----------
+    models_to_run
+        A list of models to run. It can contain the following values: 'log_reg', 'decision_tree',
+        'random_forest', 'gboost'.
+    task_folder
+        The `task_folder` parameter is a string that specifies the folder where the models and their
+        corresponding parameters and metrics will be saved.
+    '''
+
+    model_configurations = {
+        'log_reg': (LogisticRegression, {
             'penalty': ['l1', 'l2'],
             'C': [0.001, 0.01, 0.1, 1.0, 10.0],
             'solver': ['liblinear', 'saga'],
             'max_iter': [100, 500, 1000],
             'class_weight': [None, 'balanced']
-            }
-        
-        log_reg_model, log_reg_params, log_reg_metrics = tune_classification_model_hyperparameters(
-            model_class, param_grid)
-        
-        save_model(log_reg_model, log_reg_params, log_reg_metrics, f'{task_folder}/log_reg/',
-                   'log_reg_model', 'log_reg_params', 'log_reg_metrics')
-
-    if 'decision_tree' in models_to_run:
-        
-        model_class = DecisionTreeClassifier
-        
-        param_grid = {
+        }),
+        'decision_tree': (DecisionTreeClassifier, {
             'criterion': ['gini', 'entropy'],
             'max_depth': [None, 5, 10, 15, 20],
             'min_samples_split': [2, 5, 10],
             'min_samples_leaf': [1, 2, 4],
             'max_features': [None, 'sqrt', 'log2']
-            }
-        
-        dec_tree_model, dec_tree_params, dec_tree_metrics = tune_classification_model_hyperparameters(
-            model_class, param_grid)
-        
-        save_model(dec_tree_model, dec_tree_params, dec_tree_metrics, f'{task_folder}/dec_tree/',
-                   'dec_tree_model', 'dec_tree_params', 'dec_tree_metrics')
-        
-    if 'random_forest' in models_to_run:
-        
-        model_class = RandomForestClassifier
-        
-        param_grid = {
+        }),
+        'random_forest': (RandomForestClassifier, {
             'n_estimators': [100, 200, 300],
             'criterion': ['gini', 'entropy'],
             'max_depth': [None, 5, 10, 15, 20],
             'min_samples_split': [2, 5, 10],
             'min_samples_leaf': [1, 2, 4],
             'max_features': [None, 'sqrt', 'log2']
-            }
-        
-        rnd_for_model, rnd_for_params, rnd_for_metrics = tune_classification_model_hyperparameters(
-            model_class, param_grid)
-        
-        save_model(rnd_for_model, rnd_for_params, rnd_for_metrics, f'{task_folder}/rnd_for/',
-                   'rnd_for_model', 'rnd_for_params', 'rnd_for_metrics')
-        
-    if 'gboost' in models_to_run:
-        
-        model_class = GradientBoostingClassifier
-        
-        param_grid = {
+        }),
+        'gboost': (GradientBoostingClassifier, {
             'n_estimators': [100, 200, 300],
             'learning_rate': [0.01, 0.1, 0.5],
             'max_depth': [3, 5, 10],
             'min_samples_split': [2, 5, 10],
             'min_samples_leaf': [1, 2, 4],
             'max_features': [None, 'sqrt', 'log2']
-            }
+        })
+    }
+
+    for model_name in models_to_run:
+        model_class, param_grid = model_configurations[model_name]
         
-        gboost_model, gboost_params, gboost_metrics = tune_classification_model_hyperparameters(
+        model, params, metrics = tune_classification_model_hyperparameters(
             model_class, param_grid)
         
-        save_model(gboost_model, gboost_params, gboost_metrics, f'{task_folder}/gboost/',
-                   'gboost_model', 'gboost_params', 'gboost_metrics')
+        save_model(model, params, metrics, f'{task_folder}/{model_name}/',
+                   f'{model_name}_model', f'{model_name}_params', f'{model_name}_metrics')
+
 
 def find_best_model(task_folder):
+    
+    '''
+    The function `find_best_model` takes a folder path as input, iterates through the models in the
+    folder, loads each model, hyperparameters, and metrics, and returns the best model, its
+    hyperparameters, and its metrics based on the validation accuracy.
+    
+    Parameters
+    ----------
+    task_folder
+        The `task_folder` parameter is the path to the folder where the models, hyperparameters, and
+    metrics are stored.
+    
+    Returns
+    -------
+        The function `find_best_model` returns three values: `best_model`, `best_params`, and
+    `best_metrics`.
+    '''
+    
     best_model = None
     best_params = {}
     best_metrics = {}
@@ -209,6 +220,8 @@ def find_best_model(task_folder):
 
 
 if __name__ == "__main__":
+    
+    X_train, y_train, X_valid, y_valid, X_test, y_test = load_and_split_data(label="bedrooms")
     
     train_logistic_regression()
     

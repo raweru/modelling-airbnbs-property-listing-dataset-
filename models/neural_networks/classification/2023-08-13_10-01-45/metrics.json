@@ -1,0 +1,1 @@
+{"train": {"CrossEntropyLoss": 0.5727366527465925, "accuracy": 0.7275862068965517, "inference_latency": 3.793034060248013e-05}, "val": {"CrossEntropyLoss": 0.7006568424403667, "accuracy": 0.728, "inference_latency": 3.750133514404297e-05}, "test": {"CrossEntropyLoss": 0.798046057112515, "accuracy": 0.7338709677419355, "inference_latency": 3.276404834562732e-05}}
