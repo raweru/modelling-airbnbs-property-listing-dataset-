@@ -25,6 +25,8 @@ We are about to start developing a framework for evaluating a wide range of mach
 
 In this milestone, the raw Airbnb property listing data undergoes a series of cleaning and transformation steps to ensure its suitability for analysis and model training. The data preparation process primarily focuses on the tabular data component of the dataset. Below, we provide an overview of the key functions and steps used to achieve this goal.
 
+All models and functions here were created inside tabular_data.py file.
+
 ### Data Cleaning and Transformation Functions
 
 #### `remove_rows_with_missing_ratings(listings)`
@@ -62,6 +64,8 @@ The final cleaned and preprocessed tabular data is saved as a CSV file named "cl
 ## Milestone 4: Fine-Tuning Our Regression Models
 
 Welcome to the fourth and pivotal phase of our analysis, where we take a closer look at refining our regression models to achieve better accuracy. Our main goals here are to enhance our models' prediction capabilities and gain insights into how different settings affect their performance.
+
+All models and functions here were created inside regression.py file and models with their hyperparameters and metrics saved in models/regression/ folder.
 
 ### Personalized Model Enhancement: A Deeper Dive
 
@@ -112,13 +116,11 @@ Best performance was achieved with the SGD Regressor with the custom fine tuning
 | Random Forest + GridSearchCV     | 81.56             | 0.372                  |
 | Gradient Boosting + GridSearchCV | 85.61             | 0.308                  |
 
-## Milestone 5: Create a Classification Model
-
-Again, using just the numeric tabular data, we trained classification models to predict which "Category" each listing falls into. All models and functions were created inside classification.py file and models with their hyperparameters and metrics saved in models/classification/ folder.
-
 ## Milestone 5: Crafting Accurate Classification Models
 
 Welcome to the fifth and exciting phase of our journey, where we delve into creating classification models. In this phase, we build models that can categorize data into different groups, helping you make insightful predictions and informed decisions.
+
+All models and functions here were created inside classification.py file and models with their hyperparameters and metrics saved in models/classification/ folder.
 
 ### Understanding Classification Models
 
@@ -212,6 +214,8 @@ Best performing was Logistic Regression + GridSearchCV with 0.408 validation acc
 
 Welcome to the exciting realm of neural networks! In this milestone, we've pushed the boundaries of our regression problem by creating a configurable neural network. This allows you to easily customize and fine-tune the neural network's performance by tweaking parameters in the `nn_config.yaml` file. Let's dive into the details of our journey.
 
+All models and functions here were created inside neural_net_reg.py file and models with their hyperparameters and metrics saved in models/neural_networks/regression/ folder.
+
 ### Designing the Configurable Neural Network
 
 Our neural network architecture is designed to predict nightly listing prices effectively. It's crafted with layers of neurons that process the input data, gradually learning to make accurate predictions. The key components of our architecture include:
@@ -251,6 +255,8 @@ With this configurable neural network, you can confidently tackle predictive tas
 ## Milestone 7: Reuse the framework for another use-case with the Airbnb data
 
 For our final endeavor, we repurposed our classification shallow algorithms and adapted our neural network for a classification problem. In this task, we aimed to predict the number of bedrooms ('bedrooms' column) as our label.
+
+All models and functions here were created inside neural_net_class.py file and models with their hyperparameters and metrics saved in models/neural_networks/classification/ folder.
 
 ### Shallow Algorithm Reuse
 
